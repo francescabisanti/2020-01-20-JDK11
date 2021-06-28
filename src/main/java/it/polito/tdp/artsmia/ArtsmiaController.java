@@ -1,8 +1,12 @@
 package it.polito.tdp.artsmia;
 
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.artsmia.model.Adiacenz;
+import it.polito.tdp.artsmia.model.Artist;
 import it.polito.tdp.artsmia.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -31,7 +35,7 @@ public class ArtsmiaController {
     private Button btnCalcolaPercorso;
 
     @FXML
-    private ComboBox<?> boxRuolo;
+    private ComboBox<String> boxRuolo;
 
     @FXML
     private TextField txtArtista;
@@ -42,23 +46,53 @@ public class ArtsmiaController {
     @FXML
     void doArtistiConnessi(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Calcola artisti connessi");
+    	String ruolo= this.boxRuolo.getValue();
+    	txtResult.appendText("Calcola artisti connessi+\n");
+    	List<Adiacenz> result= model.getDao().getAdiacenze(model.getIdMap(), ruolo);
+    	Collections.sort(result);
+    	for(Adiacenz a : result) {
+    		this.txtResult.appendText(a.toString()+"\n");
+    	}
     }
 
     @FXML
     void doCalcolaPercorso(ActionEvent event) {
     	txtResult.clear();
     	txtResult.appendText("Calcola percorso");
+    	String artistaS= this.txtArtista.getText();
+    	int aId;
+    	try {
+    		aId= Integer.parseInt(artistaS);
+    		
+    	}catch(NumberFormatException e) {
+    		this.txtResult.setText("Inserisci un valido id");
+    		return;
+    	}
+    	Artist a= this.model.getIdMap().get(aId);
+    	List <Artist> result=this.model.trovaPercorso(a);
+    	for(Artist aa: result) {
+    		this.txtResult.appendText(aa.toString()+"\n");
+    	}
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Crea grafo");
+    	txtResult.appendText("Crea grafo \n");
+    	String ruolo= this.boxRuolo.getValue();
+    	if(ruolo==null) {
+    		this.txtResult.appendText("SELEZIONA UN RUOLO!");
+    		return;
+    	}
+    	this.model.creaGrafo(ruolo);
+    	this.txtResult.appendText("#VERTICI: "+this.model.getNVertici()+"\n");
+    	this.txtResult.appendText("#ARCHI: "+this.model.getNArchi()+"\n");
+    	
     }
 
     public void setModel(Model model) {
     	this.model = model;
+    	this.boxRuolo.getItems().addAll(model.listRuoli());
     }
 
     
